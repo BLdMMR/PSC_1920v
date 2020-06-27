@@ -82,6 +82,98 @@ void putInCollection(BodyCollection * bc) {
 	bc->next = NULL;
 }	
 
+void showDetails(char* bodyName) {
+	BodyCollection * curr = first;
+	Body* bods;
+	while(curr->next != NULL) {
+	 	curr = curr->next;
+		bods = curr->body;
+		if((strcmp(bodyName, bods->name)) == 0){
+			printf("Name: %s\nRadius: %lf\nMass: %f\nGravity: %lf\n\n", bods->name, bods->radius, bods->mass, bods->gravity);
+			return;
+		}
+		
+
+	}
+	printf("Unable to find body with the name '%s'\n\n\n", bodyName);
+	
+}
+
+void getDetailsAboutABody() {
+	system("clear");
+	puts("Insert Name Of Body");
+	char* name;
+	fgets(name, 50, stdin);
+	size_t len = strlen(name) - 1;
+	if (*name && name[len] == '\n') name[len] = '\0';
+	showDetails(name);
+	
+}
+
+int solar_insert_body(Body * body) {
+	BodyCollection * curr = first;
+	while(curr->next != NULL) {
+	 	curr = curr->next;
+	 }
+	BodyCollection* forThisBody = malloc(sizeof(BodyCollection));
+	forThisBody->body = body;
+	forThisBody->next = NULL;
+	forThisBody->prev = curr;
+	curr->next = forThisBody;
+	return 0;
+}
+
+void insertSolarBody() {
+	system("clear");
+	
+	puts("Insert the name of the body: \n");
+	char* name = malloc(50);
+	fgets(name, 50, stdin);
+	size_t nameLen = strlen(name) - 1;
+	if (*name && name[nameLen] == '\n') name[nameLen] = '\0';
+	
+	puts("Insert it's radius: \n");
+	char* radius = malloc(50);
+	fgets(radius, 50, stdin);
+	size_t radiusLen = strlen(radius) - 1;
+	if (*radius && radius[radiusLen] == '\n') radius[radiusLen] = '\0';
+	
+	puts("Insert it's mass: \n");
+	char* mass = malloc(50);
+	fgets(mass, 50, stdin);
+	size_t massLen = strlen(mass) - 1;
+	if (*mass && mass[massLen] == '\n') mass[massLen] = '\0';
+	
+	puts("Insert its gravity: \n");
+	char* gravity = malloc(50);
+	fgets(gravity, 50, stdin);
+	size_t gravityLen = strlen(gravity) - 1;
+	if (*gravity && gravity[gravityLen] == '\n') gravity[gravityLen] = '\0';
+	
+	puts("Is it a Planet? (y=1/n=0)\n");
+	char* isP = malloc(50);
+	fgets(isP, 50, stdin);
+	size_t isPLen = strlen(isP) - 1;
+	if (*isP && isP[isPLen] == '\n') isP[isPLen] = '\0';
+	
+	Body * body = malloc(sizeof(Body));
+	body->name = name;
+	body->radius = atof(radius);
+	body->mass = atof(mass);
+	body->gravity = atof(gravity);
+	body->isPlanet = atoi(isP);
+	
+	free(name);
+	free(radius);
+	free(mass);
+	free(gravity);
+	free(isP);
+	
+	int status = solar_insert_body(body);
+	if (!status) puts("Body inserted\n");
+	
+}
+
 int main() {
 	system("clear");
 	puts("Initializing...");
@@ -94,10 +186,7 @@ int main() {
 	
 	json_t * bodies_obj = json_object_get(root, "bodies");
 	
-	//Body bodies[json_array_size(bodies_obj)];
-	//int array_len = 0;
-	
-	for(int i = 0; i < json_array_size(bodies_obj); ++i/*, array_len++*/){
+	for(int i = 0; i < json_array_size(bodies_obj); ++i){
 		
 		json_t * body_obj = json_array_get(bodies_obj, i);
 		
@@ -116,20 +205,57 @@ int main() {
 		bodyCollection->body = b;
 		putInCollection(bodyCollection);
 		
-		//bodies[i] = *b;
 	}
+	/*
+	 * THIS IS A TEST TO SEE IF COLLECTION HAS EVERY ELEMENT
+	 * 
+	BodyCollection * curr = first->next;
+	Body *bods = curr->body;
+	printf("%s", bods->name);
+	curr = curr->next;
+	bods = curr->body;
+	printf("%s", bods->name);
 	
 	BodyCollection * curr = first;
 	Body* bods;
 	while(curr->next != NULL) {
-		puts("Not here");
-		memcpy(bods, &(curr->body), sizeof(Body));
-		puts("Not here");
-		printf("%s", bods->name);
-		puts("Not here");
-		curr = curr->next;
+	 	curr = curr->next;
+		puts("Not here\n");
+		bods = curr->body;
+		puts("Not here\n");
+		printf("%s\n", bods->name);
+		puts("Not here\n");
 	}
 	
 	puts("Everything went right");
+	*/
 	
+	for(;;){
+		system("clear");
+		puts("1. Get Detailed Information About a Body\n2. List Bodies That Are Planets\n3. Insert Solar Body\n\n0. Exit");
+		char c = getchar();
+		getchar();
+		/*if (c == '0') exit(0);
+		if (c == '1') getDetailsAboutABody(bodies, array_len); 
+		if (c == '2') listPlanets();
+		if (c != '1') continue;
+		*/
+		switch(c) {
+			case '0': 
+				exit(0);
+				break;
+			case '1': 
+				getDetailsAboutABody(); 
+				break;
+			//case '2': listPlanets();
+			case '3':
+				insertSolarBody();
+				break;
+			default: continue;
+		}
+				
+		puts("Press Enter to continue...");
+		getchar();
+		
+	}
 }
