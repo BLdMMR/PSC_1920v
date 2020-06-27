@@ -82,6 +82,36 @@ void putInCollection(BodyCollection * bc) {
 	bc->next = NULL;
 }	
 
+void build_data_structure(json_t * root) {
+	first = malloc(sizeof(BodyCollection));
+	first->body = NULL;
+	first->prev = NULL;
+	first->next = NULL;
+	
+	json_t * bodies_obj = json_object_get(root, "bodies");
+	
+	for(int i = 0; i < json_array_size(bodies_obj); ++i){
+		
+		json_t * body_obj = json_array_get(bodies_obj, i);
+		
+		Body * b = malloc(sizeof(Body));
+		BodyCollection * bodyCollection = malloc(sizeof(BodyCollection));
+		
+		b->name = json_string_value(json_object_get(body_obj, "englishName")) + '\0';
+		b->radius = json_real_value(json_object_get(body_obj, "meanRadius"));
+		b->isPlanet = json_boolean_value(json_object_get(body_obj, "isPlanet"));
+	
+		json_t * mass_obj = json_object_get(body_obj, "mass");
+	
+		b->mass = (double)(json_real_value(json_object_get(mass_obj, "massValue"))) * pow(10.0,(double) json_integer_value(json_object_get(mass_obj, "massExponent")));
+		b->gravity = json_real_value(json_object_get(body_obj, "gravity"));
+		
+		bodyCollection->body = b;
+		putInCollection(bodyCollection);
+		
+	}
+}
+
 void showDetails(char* bodyName) {
 	BodyCollection * curr = first;
 	Body* bods;
@@ -174,39 +204,90 @@ void insertSolarBody() {
 	
 }
 
+BodyCollection *solar_get_planets(){
+	puts("1");
+	BodyCollection * currList = first;
+	puts("2");
+	BodyCollection * currElem = malloc(sizeof(BodyCollection));
+	puts("3");
+	BodyCollection * ret = malloc(sizeof(BodyCollection));
+	puts("4");
+	ret->body = NULL;
+	ret->next = currElem;
+	ret->prev = NULL;
+	currElem->prev = ret;
+	puts("5");
+	BodyCollection * copy = malloc(sizeof(BodyCollection));
+	puts("6");
+	Body* bods;
+	puts("7");
+	while(currList->next != NULL) {
+		puts("8");
+		bods = currList->body;
+		puts("9");
+		if(bods->isPlanet) {
+			puts("10");
+			copy->body = currList->body;
+			puts("11");
+			copy->prev = currElem;
+			puts("12");
+			copy->next = NULL;
+			puts("13");
+			currElem->next = copy;
+			puts("14");
+			currElem = currElem->next;
+			puts("15");
+		}
+	}
+	return ret;
+}
+
+void listPlanets() {
+	BodyCollection * coll = solar_get_planets();
+	Body * body = coll->body;
+	coll = coll->next;
+	while((coll->next) != NULL) {
+		body = coll->body;
+		printf("%s\n", body->name);
+	}
+}
+
 int main() {
 	system("clear");
 	puts("Initializing...");
 	json_t * root = http_get_json_data("https://api.le-systeme-solaire.net/rest/bodies");
 	
-	first = malloc(sizeof(BodyCollection));
-	first->body = NULL;
-	first->prev = NULL;
-	first->next = NULL;
-	
-	json_t * bodies_obj = json_object_get(root, "bodies");
-	
-	for(int i = 0; i < json_array_size(bodies_obj); ++i){
+	build_data_structure(root);
 		
-		json_t * body_obj = json_array_get(bodies_obj, i);
+	for(;;){
+		system("clear");
 		
-		Body * b = malloc(sizeof(Body));
-		BodyCollection * bodyCollection = malloc(sizeof(BodyCollection));
+		puts("1. Insert Solar Body\n2. Get Detailed Information About a Body\n3. List Bodies That Are Planets\n\n0. Exit");
+		char c = getchar();
+		getchar();
 		
-		b->name = json_string_value(json_object_get(body_obj, "name")) + '\0';
-		b->radius = json_real_value(json_object_get(body_obj, "meanRadius"));
-		b->isPlanet = json_boolean_value(json_object_get(body_obj, "isPlanet"));
-	
-		json_t * mass_obj = json_object_get(body_obj, "mass");
-	
-		b->mass = (double)(json_real_value(json_object_get(mass_obj, "massValue"))) * pow(10.0,(double) json_integer_value(json_object_get(mass_obj, "massExponent")));
-		b->gravity = json_real_value(json_object_get(body_obj, "gravity"));
-		
-		bodyCollection->body = b;
-		putInCollection(bodyCollection);
-		
+		switch(c) {
+			case '0': 
+				exit(0);
+				break;
+			case '1': 
+				insertSolarBody();
+				break;
+			case '2':
+				getDetailsAboutABody(); 
+				break;
+			case '3':
+				listPlanets();
+				break;
+			default: continue;
+		}
+				
+		puts("Press Enter to continue...");
+		getchar();
 	}
-	/*
+}
+
+/*
 	 * THIS IS A TEST TO SEE IF COLLECTION HAS EVERY ELEMENT
 	 * 
 	BodyCollection * curr = first->next;
@@ -220,42 +301,9 @@ int main() {
 	Body* bods;
 	while(curr->next != NULL) {
 	 	curr = curr->next;
-		puts("Not here\n");
 		bods = curr->body;
-		puts("Not here\n");
 		printf("%s\n", bods->name);
-		puts("Not here\n");
 	}
 	
 	puts("Everything went right");
 	*/
-	
-	for(;;){
-		system("clear");
-		puts("1. Get Detailed Information About a Body\n2. List Bodies That Are Planets\n3. Insert Solar Body\n\n0. Exit");
-		char c = getchar();
-		getchar();
-		/*if (c == '0') exit(0);
-		if (c == '1') getDetailsAboutABody(bodies, array_len); 
-		if (c == '2') listPlanets();
-		if (c != '1') continue;
-		*/
-		switch(c) {
-			case '0': 
-				exit(0);
-				break;
-			case '1': 
-				getDetailsAboutABody(); 
-				break;
-			//case '2': listPlanets();
-			case '3':
-				insertSolarBody();
-				break;
-			default: continue;
-		}
-				
-		puts("Press Enter to continue...");
-		getchar();
-		
-	}
-}
