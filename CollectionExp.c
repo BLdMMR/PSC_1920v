@@ -72,8 +72,8 @@ json_t * http_get_json_data(const char* url){
 	return root;
 }
 
-void putInCollection(BodyCollection * bc) {
-	BodyCollection * curr = first;
+void putInCollection(BodyCollection * bc, BodyCollection * src) {
+	BodyCollection * curr = src;
 	while(curr->next != NULL) {
 		curr = curr->next;
 	}
@@ -81,6 +81,7 @@ void putInCollection(BodyCollection * bc) {
 	bc->prev = curr;
 	bc->next = NULL;
 }	
+
 
 void build_data_structure(json_t * root) {
 	first = malloc(sizeof(BodyCollection));
@@ -107,7 +108,7 @@ void build_data_structure(json_t * root) {
 		b->gravity = json_real_value(json_object_get(body_obj, "gravity"));
 		
 		bodyCollection->body = b;
-		putInCollection(bodyCollection);
+		putInCollection(bodyCollection, first);
 		
 	}
 }
@@ -203,52 +204,72 @@ void insertSolarBody() {
 	if (!status) puts("Body inserted\n");
 	
 }
-
+#if 0
 BodyCollection *solar_get_planets(){
-	puts("1");
-	BodyCollection * currList = first;
-	puts("2");
+	BodyCollection * currList = first->next;
 	BodyCollection * currElem = malloc(sizeof(BodyCollection));
-	puts("3");
 	BodyCollection * ret = malloc(sizeof(BodyCollection));
-	puts("4");
 	ret->body = NULL;
 	ret->next = currElem;
 	ret->prev = NULL;
 	currElem->prev = ret;
-	puts("5");
-	BodyCollection * copy = malloc(sizeof(BodyCollection));
-	puts("6");
+	BodyCollection * copy;
 	Body* bods;
-	puts("7");
-	while(currList->next != NULL) {
-		puts("8");
+	do {
 		bods = currList->body;
-		puts("9");
-		if(bods->isPlanet) {
-			puts("10");
+		if(bods->isPlanet && currElem->body->name != bods->name) {
+			puts("entered the if");
+			copy = malloc(sizeof(BodyCollection));
+			puts("1");
+			currElem->prev->next = copy;
+			puts("2");
 			copy->body = currList->body;
-			puts("11");
+			puts("3");
 			copy->prev = currElem;
-			puts("12");
-			copy->next = NULL;
-			puts("13");
-			currElem->next = copy;
-			puts("14");
+			puts("4");
+			copy->next = currElem;
+			puts("5");
+			currElem->prev = copy;
+			puts("6");
 			currElem = currElem->next;
-			puts("15");
+			puts("7");
+			free(copy);
+			puts("8");
 		}
-	}
+		currList = currList->next;
+	} while(currList->next != NULL);
+	return ret;
+}
+#endif
+
+BodyCollection *solar_get_planets(){
+	BodyCollection * currList = first->next;
+	BodyCollection * currElem;
+	BodyCollection * ret = malloc(sizeof(BodyCollection));
+	ret->body = NULL;
+	ret->next = NULL;
+	ret->prev = NULL;
+	Body* bods;
+	do {
+		bods = currList->body;
+		if(bods->isPlanet == 1) {
+			currElem = malloc(sizeof(BodyCollection));
+			currElem->body = currList->body;
+			putInCollection(currElem, ret);
+		}
+		currList = currList->next;
+	} while(currList->next != NULL);
 	return ret;
 }
 
 void listPlanets() {
 	BodyCollection * coll = solar_get_planets();
-	Body * body = coll->body;
 	coll = coll->next;
+	Body * body;
 	while((coll->next) != NULL) {
 		body = coll->body;
 		printf("%s\n", body->name);
+		coll = coll->next;
 	}
 }
 
