@@ -5,28 +5,6 @@
 #include <curl/curl.h>
 #include <math.h>
 
-typedef struct Body {
-	const char* name;
-	double radius;
-	double mass;
-	double gravity;
-	int isPlanet;
-	const char* arroundPlanet;
-} Body;
-
-typedef struct Mem {
-	char * memory;
-	size_t size;
-}mem_t;
-
-typedef struct BodyCollection{
-	Body * body;
-	struct BodyCollection *next;
-	struct BodyCollection *prev;
-}BodyCollection;
-
-BodyCollection * first;
-
 static size_t writeCallback(char* contents, size_t size, size_t nmemb, void *userp)
 {
 	size_t realSize = size * nmemb;
@@ -271,62 +249,3 @@ void getSatellites(){
 		coll = coll->next;
 	}
 }
-
-int main() {
-	system("clear");
-	puts("Initializing...");
-	json_t * root = http_get_json_data("https://api.le-systeme-solaire.net/rest/bodies");
-	
-	build_data_structure(root);
-		
-	for(;;){
-		system("clear");
-		
-		puts("1. Insert Solar Body\n2. Get Detailed Information About a Body\n3. List Bodies That Are Planets\n4. Get Satelites\n\n0. Exit");
-		char c = getchar();
-		getchar();
-		
-		switch(c) {
-			case '0': 
-				exit(0);
-				break;
-			case '1': 
-				insertSolarBody();
-				break;
-			case '2':
-				getDetailsAboutABody(); 
-				break;
-			case '3':
-				listPlanets();
-				break;
-			case '4':
-				getSatellites();
-				break;
-			default: continue;
-		}
-				
-		puts("Press Enter to continue...");
-		getchar();
-	}
-}
-
-/*
-	 * THIS IS A TEST TO SEE IF COLLECTION HAS EVERY ELEMENT
-	 * 
-	BodyCollection * curr = first->next;
-	Body *bods = curr->body;
-	printf("%s", bods->name);
-	curr = curr->next;
-	bods = curr->body;
-	printf("%s", bods->name);
-	
-	BodyCollection * curr = first;
-	Body* bods;
-	while(curr->next != NULL) {
-	 	curr = curr->next;
-		bods = curr->body;
-		printf("%s\n", bods->name);
-	}
-	
-	puts("Everything went right");
-	*/
